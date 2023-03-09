@@ -4,16 +4,18 @@ class Flashcard:
         self.definition = definition
 
 
-    def output(self):
-        print('Card:')
-        print(f'{self.term}')
-        print('Definition:')
-        print(f'{self.definition}')
-
+    def output(self, answer):
+        if answer == self.defintion:
+            print('Your answer is right!')
+        else:
+            print('Your answer is wrong...')
 
 def main():
-    flashcard = Flashcard('front', 'back')
-    flashcard.output()
+    term = input()
+    definition = input()
+    flashcard = Flashcard(term, definition)
+    answer = input()
+    flashcard.output(answer)
 
 
 if __name__ == '__main__':
