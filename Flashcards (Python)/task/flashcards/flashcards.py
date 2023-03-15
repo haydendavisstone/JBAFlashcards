@@ -1,55 +1,57 @@
-class Flashcard:
-    def __init__(self, term, definition):
-        self.term = term
-        self.definition = definition
+class Flashcards:
+    def __init__(self):
+        self.flashcard_dict = {}
+        self.num_cards = 0
 
+    def add_new_cards(self):
+        new_cards = int(input('Input the number of cards:\n'))
+        self.num_cards += new_cards
 
-def add_new_card(flashcards):
-    num_cards = input('Input the number of cards:\n')
+        for i in range(1, new_cards+1):
 
-    for i in range(1, int(num_cards)+1):
+            term = input(f'The term for card #{i}:\n')
+            while True:
+                try:
+                    if term not in self.flashcard_dict.keys():
+                        break
+                    else:
+                        term = input(f'The term "{term}" already exists. Try again:\n')
+                except ValueError:
+                    print("Provide an valid term for card...")
+                    continue
 
-        term = input(f'The term for card #{i}:\n')
-        while True:
-            try:
-                if term not in [i.term for i in flashcards]:
-                    break
-                else:
-                    term = input(f'The term "{term}" already exists. Try again:\n')
-            except ValueError:
-                print("Provide an valid term for card...")
-                continue
+            definition = input(f'The definition for card #{i}:\n')
+            while True:
+                try:
+                    if definition not in self.flashcard_dict.values():
+                        break
+                    else:
+                        definition = input(f'The definition "{definition}" already exists. Try again:\n')
+                except ValueError:
+                    print("Provide an valid definition for card...")
+                    continue
 
-        definition = input(f'The definition for card #{i}:\n')
-        while True:
-            try:
-                if definition not in [i.definition for i in flashcards]:
-                    break
-                else:
-                    definition = input(f'The definition "{definition}" already exists. Try again:\n')
-            except ValueError:
-                print("Provide an valid definition for card...")
-                continue
+            self.flashcard_dict[term] = definition
 
-        flashcards.append(Flashcard(term, definition))
+    def test(self):
+        for term in self.flashcard_dict:
+            answer = input(f'Print the definition of "{term}":\n')
+
+            if answer == self.flashcard_dict[term]:
+                print('Correct!')
+            elif answer in self.flashcard_dict.values():
+                print(
+                    f'Wrong. The right answer is "{self.flashcard_dict[term]}", but your definition is correct for "{list(self.flashcard_dict.keys())[list(self.flashcard_dict.values()).index(answer)]}".')
+            else:
+                print(f'Wrong. The right answer is "{self.flashcard_dict[term]}".')
 
 
 def main():
 
-    flashcards = []
-    add_new_card(flashcards)
+    flashcards = Flashcards()
 
-    for flashcard in flashcards:
-        answer = input(f'Print the definition of "{flashcard.term}":\n')
-
-        if answer == flashcard.definition:
-            print('Correct!')
-        elif answer in [i.definition for i in flashcards]:
-            correct_term = [i.term for i in flashcards if i.definition == answer]
-            correct_term = correct_term[0]
-            print(f'Wrong. The right answer is "{flashcard.definition}", but your definition is correct for "{correct_term}".')
-        else:
-            print(f'Wrong. The right answer is "{flashcard.definition}".')
+    flashcards.add_new_cards()
+    flashcards.test()
 
 
 if __name__ == '__main__':
