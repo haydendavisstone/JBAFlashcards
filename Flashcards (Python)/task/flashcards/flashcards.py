@@ -1,5 +1,6 @@
 import sys
 import os
+import argparse
 
 
 class LoggerOut:
@@ -73,8 +74,12 @@ class Flashcards:
             print(f'Can\'t remove "{card_to_remove}": there is no such card.\n')
 
 
-    def import_file(self):
-        file_name = input('File name:\n')
+    def import_file(self, file_import_name = None):
+
+        if file_import_name:
+            file_name = file_import_name
+        else:
+            file_name = input('File name:\n')
 
         try:
             user_file = open(file_name, 'r')
@@ -106,8 +111,12 @@ class Flashcards:
         user_file.close()
 
 
-    def export_file(self):
-        file_name = input('File name:\n')
+    def export_file(self, file_export_name = None):
+
+        if file_export_name:
+            file_name = file_export_name
+        else:
+            file_name = input('File name:\n')
 
         try:
             user_file = open(file_name, 'w')
@@ -195,6 +204,17 @@ def main():
     sys.stdout = LoggerOut(default_log)
     sys.stdin = LoggerIn(default_log)
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--import_from", action='store', type=str)
+    parser.add_argument("--export_to", action='store', type=str)
+
+    args = parser.parse_args()
+
+    if args.import_from:
+        flashcards.import_file(args.import_from)
+
+
+
     while True:
         action = input('Input the action (add, remove, import, export, ask, exit, log, hardest card, reset stats):\n')
 
@@ -209,6 +229,8 @@ def main():
         elif action == 'ask':
             flashcards.test()
         elif action == 'exit':
+            if args.export_to:
+                flashcards.export_file(args.export_to)
             print('Bye bye!')
             exit()
         elif action == 'log':
