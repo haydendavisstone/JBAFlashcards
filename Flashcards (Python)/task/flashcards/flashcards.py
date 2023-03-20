@@ -1,10 +1,37 @@
+import sys
 import os
+
+
+class LoggerOut:
+    def __init__(self, filename):
+        self.terminal = sys.stdout
+        self.filename = filename
+
+    def write(self, message):
+        self.terminal.write(message)
+        with open(self.filename, "a") as file:
+            print(message, file=file, flush=True, end='')
+
+    def flush(self):
+        pass
+
+
+class LoggerIn:
+    def __init__(self, filename):
+        self.terminal = sys.stdin
+        self.filename = filename
+
+    def readline(self):
+        entry = self.terminal.readline()
+        with open(self.filename, "a") as file:
+            print(entry.rstrip(), file=file, flush=True)
+        return entry
 
 class Flashcards:
     def __init__(self):
         self.flashcard_dict = {}
+        self.mistakes_dict = {}
         self.num_cards = 0
-
 
     def add_new_card(self):
         self.num_cards += 1
@@ -68,6 +95,10 @@ class Flashcards:
             if n:
                 key_value = n.split(',')
                 self.flashcard_dict[key_value[0]] = key_value[1]
+                if key_value[0] in self.mistakes_dict:
+                    self.mistakes_dict[key_value[0]] += int(key_value[2])
+                else:
+                    self.mistakes_dict[key_value[0]] = int(key_value[2])
             else:
                 num_imports -= 1
 
@@ -85,10 +116,11 @@ class Flashcards:
             return
 
         for key in self.flashcard_dict:
-            user_file.write(key)
-            user_file.write(',')
-            user_file.write(self.flashcard_dict[key])
-            user_file.write('\n')
+
+            if key in self.mistakes_dict:
+                print(f'{key},{self.flashcard_dict[key]},{self.mistakes_dict[key]}', file=user_file)
+            else:
+                print(f'{key},{self.flashcard_dict[key]},0', file=user_file)
 
         print(f'{len(self.flashcard_dict)} cards have been saved.\n')
 
@@ -96,6 +128,12 @@ class Flashcards:
 
 
     def test(self):
+
+        def add_to_log(term):
+            if term in self.mistakes_dict:
+                self.mistakes_dict[term] += 1
+            else:
+                self.mistakes_dict[term] = 1
 
         num_terms = int(input('How many times to ask?\n'))
 
@@ -110,8 +148,10 @@ class Flashcards:
             elif answer in self.flashcard_dict.values():
                 print(
                     f'Wrong. The right answer is "{self.flashcard_dict[dict_keys[i % len(dict_keys)]]}", but your definition is correct for "{list(self.flashcard_dict.keys())[list(self.flashcard_dict.values()).index(answer)]}".')
+                add_to_log(dict_keys[i % len(dict_keys)])
             else:
                 print(f'Wrong. The right answer is "{self.flashcard_dict[dict_keys[i % len(dict_keys)]]}".')
+                add_to_log(dict_keys[i % len(dict_keys)])
 
             if i+1 == num_terms:
                 return
@@ -131,13 +171,32 @@ class Flashcards:
             if i+1 == num_terms:
                 return
 
+    def get_hardest_cards(self):
+        if self.mistakes_dict.items():
+            hardest_cards, hardest_value = [i for i,m in self.mistakes_dict.items() if m == max(self.mistakes_dict.values())], max(self.mistakes_dict.values())
+            formatted_cards = ', '.join(f'"{w}"' for w in hardest_cards)
+            if len(hardest_cards) > 1:
+                print(f'The hardest cards are {formatted_cards}. You have {hardest_value} errors answering them.\n')
+            else:
+                print(f'The hardest card is {formatted_cards}. You have {hardest_value} errors answering it.\n')
+        else:
+            print('There are no cards with errors.\n')
+
+    def reset_log(self):
+        self.mistakes_dict = {}
+
 
 def main():
 
     flashcards = Flashcards()
 
+    default_log = 'default.txt'
+
+    sys.stdout = LoggerOut(default_log)
+    sys.stdin = LoggerIn(default_log)
+
     while True:
-        action = input('Input the action (add, remove, import, export, ask, exit):\n')
+        action = input('Input the action (add, remove, import, export, ask, exit, log, hardest card, reset stats):\n')
 
         if action == 'add':
             flashcards.add_new_card()
@@ -152,8 +211,15 @@ def main():
         elif action == 'exit':
             print('Bye bye!')
             exit()
-
+        elif action == 'log':
+            new_file_name = input('File name:\n')
+            os.replace('default.txt', new_file_name)
+            print('The log has been saved.\n')
+        elif action == 'hardest card':
+            flashcards.get_hardest_cards()
+        elif action == 'reset stats':
+            flashcards.reset_log()
+            print('Card statistics have been reset.\n')
 
 if __name__ == '__main__':
     main()
-
