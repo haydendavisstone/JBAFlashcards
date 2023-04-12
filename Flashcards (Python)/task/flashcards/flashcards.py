@@ -3,31 +3,6 @@ import os
 import argparse
 
 
-class LoggerOut:
-    def __init__(self, filename):
-        self.terminal = sys.stdout
-        self.filename = filename
-
-    def write(self, message):
-        self.terminal.write(message)
-        with open(self.filename, "a") as file:
-            print(message, file=file, flush=True, end='')
-
-    def flush(self):
-        pass
-
-
-class LoggerIn:
-    def __init__(self, filename):
-        self.terminal = sys.stdin
-        self.filename = filename
-
-    def readline(self):
-        entry = self.terminal.readline()
-        with open(self.filename, "a") as file:
-            print(entry.rstrip(), file=file, flush=True)
-        return entry
-
 class Flashcards:
     def __init__(self):
         self.flashcard_dict = {}
@@ -144,7 +119,7 @@ class Flashcards:
             else:
                 self.mistakes_dict[term] = 1
 
-        num_terms = int(input('How many times to ask?\n'))
+        num_terms = int(input('Number of cards to test?\n'))
 
         dict_keys = list(self.flashcard_dict.keys())
 
@@ -199,11 +174,6 @@ def main():
 
     flashcards = Flashcards()
 
-    default_log = 'default.txt'
-
-    sys.stdout = LoggerOut(default_log)
-    sys.stdin = LoggerIn(default_log)
-
     parser = argparse.ArgumentParser()
     parser.add_argument("--import_from", action='store', type=str)
     parser.add_argument("--export_to", action='store', type=str)
@@ -214,9 +184,8 @@ def main():
         flashcards.import_file(args.import_from)
 
 
-
     while True:
-        action = input('Input the action (add, remove, import, export, ask, exit, log, hardest card, reset stats):\n')
+        action = input('Input the action (add, remove, import, export, test, exit, hardest card, reset stats):\n')
 
         if action == 'add':
             flashcards.add_new_card()
@@ -226,17 +195,13 @@ def main():
             flashcards.import_file()
         elif action == 'export':
             flashcards.export_file()
-        elif action == 'ask':
+        elif action == 'test':
             flashcards.test()
         elif action == 'exit':
             if args.export_to:
                 flashcards.export_file(args.export_to)
             print('Bye bye!')
             exit()
-        elif action == 'log':
-            new_file_name = input('File name:\n')
-            os.replace('default.txt', new_file_name)
-            print('The log has been saved.\n')
         elif action == 'hardest card':
             flashcards.get_hardest_cards()
         elif action == 'reset stats':
